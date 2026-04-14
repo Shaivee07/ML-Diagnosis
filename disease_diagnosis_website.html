@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DiagnoAI — Disease Diagnosis System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F5F2EC;
+  --surface: #FFFDF8;
+  --surface2: #EDE9E0;
+  --ink: #1A1814;
+  --ink2: #4A463E;
+  --ink3: #8A857A;
+  --accent: #C4452A;
+  --accent2: #E8A020;
+  --green: #2A6B3C;
+  --green-bg: #E8F4EB;
+  --amber-bg: #FDF3DC;
+  --red-bg: #FAEAE6;
+  --border: #D8D2C4;
+  --border2: #E8E2D6;
+  --shadow: 0 2px 16px rgba(26,24,20,0.08);
+  --shadow-lg: 0 8px 40px rgba(26,24,20,0.14);
+  --r: 12px;
+  --r-sm: 6px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ── NAV ── */
+nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+.nav-pills { display: flex; gap: 4px; }
+.nav-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--ink2);
+  transition: all .2s;
+}
+.nav-pill:hover { background: var(--surface2); color: var(--ink); }
+.nav-pill.active { background: var(--ink); color: var(--bg); }
+.nav-badge {
+  background: var(--accent);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+  margin-left: 6px;
+}
+
+/* ── LAYOUT ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── HERO ── */
+.hero {
+  background: var(--ink);
+  color: var(--bg);
+  padding: 5rem 2rem 4rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 120%, #C4452A22 0%, transparent 70%);
+}
+.hero-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--accent2);
+  text-transform: uppercase;
+  margin-bottom: 1.2rem;
+}
+.hero h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  line-height: 1.1;
+  margin-bottom: 1.2rem;
+  letter-spacing: -1px;
+}
+.hero h1 em { font-style: italic; color: #E8C090; }
+.hero p {
+  font-size: 17px;
+  color: #A09A90;
+  max-width: 500px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.7;
+}
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: white;
+  padding: 13px 28px;
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all .2s;
+  letter-spacing: 0.2px;
+}
+.hero-cta:hover { background: #A83820; transform: translateY(-1px); }
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #2E2C28;
+}
+.hero-stat-num {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem;
+  color: white;
+}
+.hero-stat-label { font-size: 12px; color: #706A60; margin-top: 2px; }
+
+/* ── DIAGNOSIS PAGE ── */
+.diag-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 0;
+  min-height: calc(100vh - 60px);
+}
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem;
+  overflow-y: auto;
+  position: sticky;
+  top: 60px;
+  height: calc(100vh - 60px);
+}
+.main-panel { padding: 1.5rem 2rem; }
+
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 10px;
+}
+
+/* Patient info */
+.field-row { margin-bottom: 14px; }
+.field-label { font-size: 12px; font-weight: 500; color: var(--ink2); margin-bottom: 5px; display: block; }
+.field-row input[type=number],
+.field-row select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  transition: border .2s;
+}
+.field-row input:focus, .field-row select:focus { border-color: var(--accent); }
+.field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Lab inputs */
+.lab-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.lab-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+}
+.lab-card label { font-size: 11px; font-weight: 500; color: var(--ink3); display: block; margin-bottom: 4px; }
+.lab-card input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: 'DM Mono', monospace;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--ink);
+  outline: none;
+}
+.lab-card .lab-unit { font-size: 11px; color: var(--ink3); }
+.lab-card.abnormal { border-color: var(--accent); background: var(--red-bg); }
+.lab-card.abnormal label { color: var(--accent); }
+.lab-card.warning { border-color: var(--accent2); background: var(--amber-bg); }
+.lab-card.warning label { color: #A06010; }
+
+/* Symptoms grid */
+.symptoms-section { margin-bottom: 1.5rem; }
+.sym-category-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink2);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sym-category-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border2);
+}
+.sym-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.chip {
+  padding: 5px 11px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--ink2);
+  transition: all .15s;
+  user-select: none;
+}
+.chip:hover { border-color: var(--ink2); color: var(--ink); }
+.chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+/* Analyze button */
+.analyze-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--r);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: 0.3px;
+}
+.analyze-btn:hover { background: #A83820; }
+.analyze-btn:active { transform: scale(0.99); }
+.reset-btn {
+  width: 100%;
+  padding: 9px;
+  background: transparent;
+  color: var(--ink3);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all .2s;
+}
+.reset-btn:hover { background: var(--surface2); color: var(--ink2); }
+
+/* ── RESULTS ── */
+.results-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+.results-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 26px;
+  letter-spacing: -0.5px;
+}
+.results-meta { font-size: 12px; color: var(--ink3); }
+
+.empty-state {
+  text-align: center;
+  padding: 5rem 2rem;
+  color: var(--ink3);
+}
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--surface2);
+  margin: 0 auto 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+.empty-state h3 { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--ink2); margin-bottom: 8px; }
+.empty-state p { font-size: 14px; max-width: 280px; margin: 0 auto; }
+
+/* Result cards */
+.result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 12px;
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  animation: slideIn .3s ease forwards;
+  opacity: 0;
+  transform: translateY(8px);
+}
+@keyframes slideIn { to { opacity: 1; transform: translateY(0); } }
+.result-card:nth-child(1) { animation-delay: .05s; }
+.result-card:nth-child(2) { animation-delay: .1s; }
+.result-card:nth-child(3) { animation-delay: .15s; }
+.result-card:nth-child(4) { animation-delay: .2s; }
+.result-card:nth-child(5) { animation-delay: .25s; }
+.result-card:nth-child(6) { animation-delay: .3s; }
+.result-card.top { border-color: var(--accent); }
+
+.rank-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.rank-1 { background: var(--ink); color: var(--bg); }
+.rank-2 { background: var(--surface2); color: var(--ink); }
+.rank-3 { background: var(--surface2); color: var(--ink); }
+.rank-n { background: var(--bg); color: var(--ink3); border: 1px solid var(--border); }
+
+.result-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.result-info { font-size: 12px; color: var(--ink3); margin-bottom: 8px; }
+.bar-track {
+  height: 4px;
+  background: var(--surface2);
+  border-radius: 4px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 360px;
+}
+.bar-fill {
+  height: 4px;
+  border-radius: 4px;
+  transition: width .6s cubic-bezier(.16,1,.3,1);
+}
+
+.prob-display {
+  text-align: right;
+}
+.prob-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1;
+}
+.prob-pct { font-size: 11px; color: var(--ink3); }
+
+.conf-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.conf-high { background: var(--green-bg); color: var(--green); }
+.conf-med  { background: var(--amber-bg); color: #A06010; }
+.conf-low  { background: var(--red-bg); color: var(--accent); }
+
+/* Patient summary bar */
+.patient-bar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+}
+.patient-pill {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  background: var(--surface2);
+  color: var(--ink2);
+}
+.patient-pill.highlight { background: var(--ink); color: var(--bg); }
+
+/* ── ABOUT PAGE ── */
+.about-wrap { max-width: 860px; margin: 0 auto; padding: 3rem 2rem; }
+.about-hero {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+.about-hero h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.4rem;
+  margin-bottom: 1rem;
+  letter-spacing: -0.5px;
+}
+.about-hero p { color: var(--ink2); max-width: 520px; margin: 0 auto; }
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.2rem; margin-bottom: 3rem; }
+.about-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 1.5rem;
+}
+.about-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+.about-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.about-card p { font-size: 13px; color: var(--ink2); line-height: 1.6; }
+
+.diseases-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; margin-bottom: 3rem; }
+.disease-pill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.disease-pill::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.model-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-bottom: 3rem;
+}
+.model-table th {
+  background: var(--ink);
+  color: var(--bg);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 500;
+  font-size: 12px;
+}
+.model-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border2);
+  color: var(--ink2);
+}
+.model-table tr:hover td { background: var(--surface); }
+.model-table tr:last-child td { border-bottom: none; }
+.badge-best {
+  background: var(--green-bg);
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.disclaimer-box {
+  background: var(--red-bg);
+  border: 1px solid #E0A090;
+  border-radius: var(--r);
+  padding: 1.2rem 1.5rem;
+  font-size: 13px;
+  color: #8A3020;
+  line-height: 1.7;
+}
+.disclaimer-box strong { font-weight: 600; }
+
+/* ── SYMPTOMS GUIDE PAGE ── */
+.guide-wrap { max-width: 900px; margin: 0 auto; padding: 2rem; }
+.guide-wrap h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+.guide-wrap .sub { color: var(--ink3); margin-bottom: 2rem; }
+.sym-list-section { margin-bottom: 2rem; }
+.sym-list-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink2);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.sym-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; }
+.sym-item {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-sm);
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--ink2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.sym-item:hover { border-color: var(--accent); color: var(--ink); background: var(--red-bg); }
+.sym-item code { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ink3); display: block; }
+
+/* Divider */
+.divider { height: 1px; background: var(--border2); margin: 1.5rem 0; }
+.section-gap { height: 1.5rem; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <span class="logo-dot"></span>
+    DiagnoAI
+  </div>
+  <div class="nav-pills">
+    <button class="nav-pill" onclick="showPage('home')">Home</button>
+    <button class="nav-pill active" onclick="showPage('diagnose')">Diagnose</button>
+    <button class="nav-pill" onclick="showPage('guide')">Symptoms Guide</button>
+    <button class="nav-pill" onclick="showPage('about')">About</button>
+  </div>
+</nav>
+
+<!-- ══════════════════ HOME PAGE ══════════════════ -->
+<div id="page-home" class="page">
+  <div class="hero">
+    <div class="hero-eyebrow">AI-Powered Diagnostic Tool</div>
+    <h1>Intelligent<br><em>disease diagnosis</em><br>in seconds</h1>
+    <p>Enter patient symptoms, lab values, and medical history to receive a ranked list of possible diagnoses powered by machine learning.</p>
+    <button class="hero-cta" onclick="showPage('diagnose')">
+      Start Diagnosis →
+    </button>
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-num">15</div>
+        <div class="hero-stat-label">Diseases covered</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">25</div>
+        <div class="hero-stat-label">Symptom signals</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">3</div>
+        <div class="hero-stat-label">ML models</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">3K</div>
+        <div class="hero-stat-label">Training records</div>
+      </div>
+    </div>
+  </div>
+  <div style="max-width:860px;margin:0 auto;padding:3rem 2rem;">
+    <div class="cards-grid">
+      <div class="about-card">
+        <div class="about-card-icon">⚕</div>
+        <h4>Symptom matching</h4>
+        <p>Select from 25 clinical symptoms across respiratory, cardiac, GI, and general categories.</p>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon">🔬</div>
+        <h4>Lab correlation</h4>
+        <p>Temperature, heart rate, SpO₂, and WBC are cross-referenced against disease-specific normal ranges.</p>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon">📊</div>
+        <h4>Ranked output</h4>
+        <p>Receive up to 6 diagnoses ranked by probability with confidence indicators and clinical notes.</p>
+      </div>
+    </div>
+    <div class="disclaimer-box">
+      <strong>Educational use only.</strong> This tool is built for learning and demonstration purposes. It does not constitute medical advice and should never be used for actual clinical decision-making. Always consult a qualified healthcare professional.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ DIAGNOSE PAGE ══════════════════ -->
+<div id="page-diagnose" class="page active">
+  <div class="diag-layout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="section-label" style="margin-bottom:14px">Patient information</div>
+
+      <div class="field-pair">
+        <div class="field-row">
+          <label class="field-label">Age</label>
+          <input type="number" id="age" value="40" min="1" max="110">
+        </div>
+        <div class="field-row">
+          <label class="field-label">Sex</label>
+          <select id="sex">
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">Medical history</label>
+        <select id="history">
+          <option value="none">No significant history</option>
+          <option value="diabetes">Diabetes mellitus</option>
+          <option value="hypertension">Hypertension</option>
+          <option value="asthma">Asthma</option>
+          <option value="heart_disease">Heart disease</option>
+          <option value="copd">COPD</option>
+        </select>
+      </div>
+
+      <div class="field-row">
+        <label class="field-label">Model</label>
+        <select id="model-select">
+          <option value="rf">Random Forest (recommended)</option>
+          <option value="dt">Decision Tree (explainable)</option>
+          <option value="nb">Naive Bayes (fast)</option>
+        </select>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-label" style="margin-bottom:12px">Lab results</div>
+
+      <div class="lab-grid">
+        <div class="lab-card" id="lab-temp">
+          <label>Temperature</label>
+          <input type="number" id="temp" value="37.0" step="0.1" min="34" max="42" oninput="checkLabs()">
+          <div class="lab-unit">°C &nbsp;·&nbsp; norm 36.1–37.2</div>
+        </div>
+        <div class="lab-card" id="lab-hr">
+          <label>Heart rate</label>
+          <input type="number" id="hr" value="72" min="30" max="200" oninput="checkLabs()">
+          <div class="lab-unit">bpm &nbsp;·&nbsp; norm 60–100</div>
+        </div>
+        <div class="lab-card" id="lab-spo2">
+          <label>SpO₂</label>
+          <input type="number" id="spo2" value="98" min="70" max="100" oninput="checkLabs()">
+          <div class="lab-unit">% &nbsp;·&nbsp; norm 95–100</div>
+        </div>
+        <div class="lab-card" id="lab-wbc">
+          <label>WBC count</label>
+          <input type="number" id="wbc" value="7.5" step="0.1" min="0.5" max="50" oninput="checkLabs()">
+          <div class="lab-unit">×10³/µL &nbsp;·&nbsp; norm 4.5–11</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-label" style="margin-bottom:14px">Symptoms
+        <span id="sym-count" style="font-family:'DM Mono';font-size:11px;color:var(--accent);margin-left:8px;text-transform:none;letter-spacing:0"></span>
+      </div>
+
+      <div class="symptoms-section">
+        <div class="sym-category-title">Respiratory</div>
+        <div class="sym-chips" id="chips-resp"></div>
+        <div class="sym-category-title">Cardiovascular</div>
+        <div class="sym-chips" id="chips-cardio"></div>
+        <div class="sym-category-title">General</div>
+        <div class="sym-chips" id="chips-general"></div>
+        <div class="sym-category-title">Digestive &amp; other</div>
+        <div class="sym-chips" id="chips-other"></div>
+      </div>
+
+      <button class="analyze-btn" onclick="analyze()">Analyze patient →</button>
+      <button class="reset-btn" onclick="resetAll()">Reset all fields</button>
+    </div>
+
+    <!-- MAIN PANEL -->
+    <div class="main-panel">
+      <div id="results-panel">
+        <div class="empty-state">
+          <div class="empty-icon">⚕</div>
+          <h3>No analysis yet</h3>
+          <p>Fill in patient details and select symptoms, then click Analyze.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ SYMPTOMS GUIDE ══════════════════ -->
+<div id="page-guide" class="page">
+  <div class="guide-wrap">
+    <h2>Symptoms reference guide</h2>
+    <p class="sub">All 25 symptoms used by the diagnostic model, grouped by category. Click any symptom to add it to the diagnosis form.</p>
+
+    <div class="sym-list-section">
+      <h3>Respiratory</h3>
+      <div class="sym-list" id="guide-resp"></div>
+    </div>
+    <div class="sym-list-section">
+      <h3>Cardiovascular</h3>
+      <div class="sym-list" id="guide-cardio"></div>
+    </div>
+    <div class="sym-list-section">
+      <h3>General / systemic</h3>
+      <div class="sym-list" id="guide-general"></div>
+    </div>
+    <div class="sym-list-section">
+      <h3>Digestive &amp; other</h3>
+      <div class="sym-list" id="guide-other"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ ABOUT PAGE ══════════════════ -->
+<div id="page-about" class="page">
+  <div class="about-wrap">
+    <div class="about-hero">
+      <h2>How DiagnoAI works</h2>
+      <p>A scoring-based diagnostic engine that correlates patient symptoms and lab values against 15 disease profiles derived from clinical knowledge.</p>
+    </div>
+
+    <div class="section-label" style="margin-bottom:12px">Diseases covered</div>
+    <div class="diseases-grid" id="diseases-grid"></div>
+
+    <div class="divider"></div>
+    <div class="section-label" style="margin-bottom:12px">ML Models comparison</div>
+
+    <table class="model-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Approach</th>
+          <th>Strength</th>
+          <th>Best for</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Random Forest</strong></td>
+          <td>Ensemble of 150 decision trees</td>
+          <td>High accuracy, handles noisy data</td>
+          <td>General use</td>
+          <td><span class="badge-best">Recommended</span></td>
+        </tr>
+        <tr>
+          <td><strong>Decision Tree</strong></td>
+          <td>Single tree, depth-limited</td>
+          <td>Fully explainable decisions</td>
+          <td>Transparency needed</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><strong>Naive Bayes</strong></td>
+          <td>Probabilistic (Gaussian)</td>
+          <td>Fast, works with small data</td>
+          <td>Quick screening</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section-label" style="margin-bottom:12px">Scoring methodology</div>
+    <div class="cards-grid" style="margin-bottom:2rem">
+      <div class="about-card">
+        <div class="about-card-icon" style="background:var(--red-bg)">📋</div>
+        <h4>Symptom match — 60%</h4>
+        <p>Proportion of selected symptoms that align with the disease's known clinical profile.</p>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon" style="background:var(--amber-bg)">🔬</div>
+        <h4>Lab correlation — 15%</h4>
+        <p>Temperature, HR, SpO₂, and WBC are checked against disease-specific expected ranges.</p>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon" style="background:var(--green-bg)">🩺</div>
+        <h4>History boost — 10%</h4>
+        <p>Pre-existing conditions like asthma, COPD or hypertension increase score for relevant diseases.</p>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon">📐</div>
+        <h4>Coverage score — 15%</h4>
+        <p>Rewards diseases that explain most of the patient's symptoms — penalizes over-broad matches.</p>
+      </div>
+    </div>
+
+    <div class="disclaimer-box">
+      <strong>Important disclaimer:</strong> DiagnoAI is built for educational and demonstration purposes only. The scoring model is simplified and does not replicate the complexity of real clinical diagnosis. Never use this tool for actual medical decisions. Always consult a qualified and licensed healthcare professional.
+    </div>
+  </div>
+</div>
+
+<script>
+const SYMPTOMS = {
+  resp:    ["Cough","Shortness of breath","Wheezing","Sore throat","Runny nose","Chest tightness","Sneezing","Hemoptysis"],
+  cardio:  ["Chest pain","Palpitations","Leg swelling","Dizziness","Syncope","Irregular heartbeat"],
+  general: ["Fever","Fatigue","Headache","Night sweats","Weight loss","Chills","Muscle aches","Loss of appetite"],
+  other:   ["Nausea","Vomiting","Diarrhea","Abdominal pain","Rash","Joint pain","Back pain"]
+};
+
+const SYM_KEY = s => s.toLowerCase().replace(/\s+/g,"_");
+
+const DISEASES = [
+  {name:"Common Cold",syms:["cough","sore_throat","runny_nose","fatigue","headache","sneezing"],temp:[36,37.8],hr:[60,100],spo2:[95,100],wbc:[4.5,11],hist:[],info:"Viral URTI. Self-limiting, usually 7–10 days."},
+  {name:"Influenza",syms:["fever","cough","muscle_aches","fatigue","headache","chills","sore_throat"],temp:[38,40.5],hr:[80,115],spo2:[93,99],wbc:[3,9],hist:[],info:"Seasonal flu. Antivirals effective if given early."},
+  {name:"COVID-19",syms:["fever","cough","shortness_of_breath","fatigue","muscle_aches","loss_of_appetite","headache"],temp:[37.5,40],hr:[70,120],spo2:[80,97],wbc:[3,8],hist:["diabetes","hypertension"],info:"SARS-CoV-2 infection. Wide range of severity."},
+  {name:"Pneumonia",syms:["fever","cough","shortness_of_breath","chest_pain","fatigue","chills","muscle_aches"],temp:[38.5,41],hr:[90,130],spo2:[82,94],wbc:[12,25],hist:["copd","diabetes"],info:"Lung parenchyma infection. Requires antibiotics."},
+  {name:"Asthma Attack",syms:["wheezing","shortness_of_breath","chest_tightness","cough"],temp:[36,37.5],hr:[90,130],spo2:[82,94],wbc:[4,12],hist:["asthma"],info:"Bronchospasm episode. Bronchodilators indicated."},
+  {name:"COPD Exacerbation",syms:["shortness_of_breath","wheezing","cough","chest_tightness","fatigue"],temp:[37,39],hr:[85,130],spo2:[78,92],wbc:[8,18],hist:["copd"],info:"Acute worsening of COPD. Typically in smokers 50+."},
+  {name:"Myocardial Infarction",syms:["chest_pain","shortness_of_breath","nausea","dizziness","palpitations","fatigue"],temp:[36.5,37.5],hr:[50,130],spo2:[86,96],wbc:[10,20],hist:["heart_disease","hypertension","diabetes"],info:"Coronary artery occlusion. Medical emergency."},
+  {name:"Pulmonary Embolism",syms:["chest_pain","shortness_of_breath","palpitations","dizziness","leg_swelling"],temp:[37,38.5],hr:[95,140],spo2:[80,94],wbc:[8,18],hist:["heart_disease"],info:"PE — blood clot in pulmonary vasculature."},
+  {name:"Hypertensive Crisis",syms:["headache","dizziness","chest_pain","shortness_of_breath","palpitations","nausea"],temp:[36.5,37.5],hr:[80,130],spo2:[93,99],wbc:[5,11],hist:["hypertension"],info:"Severely elevated BP. Urgent antihypertensive treatment."},
+  {name:"Gastroenteritis",syms:["nausea","vomiting","diarrhea","abdominal_pain","fever","fatigue"],temp:[37.5,39.5],hr:[75,110],spo2:[96,100],wbc:[5,13],hist:[],info:"GI infection — viral or bacterial. Supportive care."},
+  {name:"GERD",syms:["chest_pain","cough","nausea","abdominal_pain"],temp:[36,37.3],hr:[60,90],spo2:[96,100],wbc:[4.5,10],hist:["diabetes"],info:"Acid reflux. Managed with PPIs and lifestyle changes."},
+  {name:"Allergic Rhinitis",syms:["sneezing","runny_nose","cough","headache","fatigue","wheezing"],temp:[36,37.2],hr:[60,90],spo2:[96,100],wbc:[4.5,11],hist:["asthma"],info:"Allergic inflammation of nasal passages."},
+  {name:"Tuberculosis",syms:["cough","night_sweats","weight_loss","fever","fatigue","chest_pain"],temp:[37.5,39.5],hr:[80,110],spo2:[88,96],wbc:[5,15],hist:["diabetes"],info:"Mycobacterium tuberculosis infection. Notifiable disease."},
+  {name:"Dengue Fever",syms:["fever","headache","muscle_aches","joint_pain","rash","nausea","fatigue"],temp:[38.5,41],hr:[60,100],spo2:[94,99],wbc:[1.5,5],hist:[],info:"Arboviral disease. Watch for hemorrhagic features."},
+  {name:"Appendicitis",syms:["abdominal_pain","nausea","vomiting","fever","loss_of_appetite"],temp:[37.5,39.5],hr:[80,120],spo2:[96,100],wbc:[11,20],hist:[],info:"Appendix inflammation. Surgical emergency if perforated."},
+];
+
+const DISEASE_NAMES = DISEASES.map(d => d.name);
+
+function inRange(v, r){ return v >= r[0] && v <= r[1]; }
+
+function scoreDisease(d, selected, history, labs){
+  const sel = new Set(selected);
+  let matched = d.syms.filter(s => sel.has(s)).length;
+  if(matched === 0) return 0;
+  let s = 0;
+  s += (matched / d.syms.length) * 60;
+  s += (matched / Math.max(selected.length,1)) * 15;
+  if(d.hist.length === 0 || d.hist.includes(history)) s += 10;
+  else s -= 12;
+  if(d.name === "Asthma Attack" && history === "asthma") s += 18;
+  if(d.name === "COPD Exacerbation" && history === "copd") s += 18;
+  if(d.name === "Hypertensive Crisis" && history === "hypertension") s += 15;
+  let labHit = 0, labTotal = 0;
+  if(labs.temp  != null){ labTotal++; if(inRange(labs.temp,  d.temp))  labHit++; }
+  if(labs.hr    != null){ labTotal++; if(inRange(labs.hr,    d.hr))    labHit++; }
+  if(labs.spo2  != null){ labTotal++; if(inRange(labs.spo2,  d.spo2))  labHit++; }
+  if(labs.wbc   != null){ labTotal++; if(inRange(labs.wbc,   d.wbc))   labHit++; }
+  if(labTotal > 0) s += (labHit/labTotal)*15;
+  return Math.max(0, s);
+}
+
+// ── Build chips ──
+function buildChips(){
+  Object.entries(SYMPTOMS).forEach(([cat, syms]) => {
+    const el = document.getElementById("chips-"+cat);
+    syms.forEach(sym => {
+      const c = document.createElement("span");
+      c.className = "chip";
+      c.textContent = sym;
+      c.dataset.key = SYM_KEY(sym);
+      c.onclick = () => { c.classList.toggle("on"); updateSymCount(); };
+      el.appendChild(c);
+    });
+    // Guide page
+    const gel = document.getElementById("guide-"+cat);
+    if(gel){
+      syms.forEach(sym => {
+        const item = document.createElement("div");
+        item.className = "sym-item";
+        item.innerHTML = `${sym}<code>${SYM_KEY(sym)}</code>`;
+        item.onclick = () => {
+          showPage('diagnose');
+          setTimeout(() => {
+            const chip = document.querySelector(`.chip[data-key="${SYM_KEY(sym)}"]`);
+            if(chip){ chip.classList.add("on"); updateSymCount(); }
+          }, 50);
+        };
+        gel.appendChild(item);
+      });
+    }
+  });
+}
+
+function updateSymCount(){
+  const n = document.querySelectorAll(".chip.on").length;
+  document.getElementById("sym-count").textContent = n > 0 ? `${n} selected` : "";
+}
+
+function getSelected(){
+  return [...document.querySelectorAll(".chip.on")].map(c => c.dataset.key);
+}
+
+function checkLabs(){
+  const temp = parseFloat(document.getElementById("temp").value);
+  const hr   = parseInt(document.getElementById("hr").value);
+  const spo2 = parseInt(document.getElementById("spo2").value);
+  const wbc  = parseFloat(document.getElementById("wbc").value);
+  const card = (id, val, lo, hi, warnLo, warnHi) => {
+    const el = document.getElementById("lab-"+id);
+    el.classList.remove("abnormal","warning");
+    if(val < lo || val > hi) el.classList.add("abnormal");
+    else if(val < warnLo || val > warnHi) el.classList.add("warning");
+  };
+  card("temp", temp, 35, 41, 36.1, 37.8);
+  card("hr",   hr,   30, 180, 60, 100);
+  card("spo2", spo2, 85, 100, 95, 100);
+  card("wbc",  wbc,  1,  40,  4.5, 11);
+}
+
+function analyze(){
+  const selected = getSelected();
+  if(selected.length === 0){
+    document.getElementById("results-panel").innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚠</div>
+        <h3>No symptoms selected</h3>
+        <p>Please select at least one symptom from the sidebar before analyzing.</p>
+      </div>`;
+    return;
+  }
+
+  const age     = parseInt(document.getElementById("age").value) || 40;
+  const sex     = document.getElementById("sex").value;
+  const history = document.getElementById("history").value;
+  const labs    = {
+    temp: parseFloat(document.getElementById("temp").value),
+    hr:   parseInt(document.getElementById("hr").value),
+    spo2: parseInt(document.getElementById("spo2").value),
+    wbc:  parseFloat(document.getElementById("wbc").value),
+  };
+  const histLabel = document.getElementById("history").options[document.getElementById("history").selectedIndex].text;
+
+  const scored = DISEASES
+    .map(d => ({...d, score: scoreDisease(d, selected, history, labs)}))
+    .filter(d => d.score > 4)
+    .sort((a,b) => b.score - a.score);
+
+  if(scored.length === 0){
+    document.getElementById("results-panel").innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3>No matches found</h3>
+        <p>Try selecting more symptoms or adjusting the lab values.</p>
+      </div>`;
+    return;
+  }
+
+  const total = scored.reduce((s,d)=>s+d.score,0) || 1;
+  const results = scored.slice(0,6).map(d => ({...d, prob: Math.round((d.score/total)*100)}));
+
+  // patient bar
+  const symNames = selected.map(k => k.replace(/_/g," "));
+  const pills = [
+    `<span class="patient-pill highlight">Age ${age}</span>`,
+    `<span class="patient-pill highlight">${sex==="M"?"Male":"Female"}</span>`,
+    history !== "none" ? `<span class="patient-pill highlight">${histLabel}</span>` : "",
+    `<span class="patient-pill">Temp ${labs.temp}°C</span>`,
+    `<span class="patient-pill">HR ${labs.hr} bpm</span>`,
+    `<span class="patient-pill">SpO₂ ${labs.spo2}%</span>`,
+    `<span class="patient-pill">WBC ${labs.wbc}</span>`,
+    ...symNames.map(s=>`<span class="patient-pill">${s}</span>`)
+  ].filter(Boolean).join("");
+
+  const barColors = ["#C4452A","#2A6B3C","#E8A020","#4A6B8A","#7A4A8A","#6A8A4A"];
+
+  let cardsHtml = results.map((d,i) => {
+    const rankClass = i===0?"rank-1":i===1?"rank-2":i===2?"rank-3":"rank-n";
+    const confTag = d.prob >= 40
+      ? `<span class="conf-tag conf-high">High</span>`
+      : d.prob >= 20
+      ? `<span class="conf-tag conf-med">Moderate</span>`
+      : `<span class="conf-tag conf-low">Low</span>`;
+    const topClass = i===0 ? " top" : "";
+    return `
+    <div class="result-card${topClass}">
+      <div class="rank-circle ${rankClass}">${i+1}</div>
+      <div>
+        <div class="result-name">${d.name} ${confTag}</div>
+        <div class="result-info">${d.info}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${d.prob}%;background:${barColors[i]||"#888"}"></div>
+        </div>
+      </div>
+      <div class="prob-display">
+        <div class="prob-num">${d.prob}</div>
+        <div class="prob-pct">% match</div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const modelLabel = {rf:"Random Forest",dt:"Decision Tree",nb:"Naive Bayes"}[document.getElementById("model-select").value];
+
+  document.getElementById("results-panel").innerHTML = `
+    <div class="results-header">
+      <div>
+        <div class="section-label" style="margin-bottom:4px">Analysis complete · ${modelLabel}</div>
+        <div class="results-title">Differential diagnosis</div>
+      </div>
+      <div class="results-meta">${results.length} of ${scored.length} matches shown</div>
+    </div>
+    <div class="patient-bar">${pills}</div>
+    ${cardsHtml}
+    <p style="font-size:12px;color:var(--ink3);margin-top:1.5rem;line-height:1.7">
+      ⚠ For educational use only. Scores are computed by weighted symptom-lab correlation, not a certified clinical model. Always seek professional medical evaluation.
+    </p>`;
+}
+
+function resetAll(){
+  document.querySelectorAll(".chip.on").forEach(c => c.classList.remove("on"));
+  document.getElementById("age").value = 40;
+  document.getElementById("sex").value = "M";
+  document.getElementById("history").value = "none";
+  document.getElementById("temp").value = 37.0;
+  document.getElementById("hr").value = 72;
+  document.getElementById("spo2").value = 98;
+  document.getElementById("wbc").value = 7.5;
+  ["temp","hr","spo2","wbc"].forEach(id => {
+    document.getElementById("lab-"+id).classList.remove("abnormal","warning");
+  });
+  updateSymCount();
+  document.getElementById("results-panel").innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">⚕</div>
+      <h3>No analysis yet</h3>
+      <p>Fill in patient details and select symptoms, then click Analyze.</p>
+    </div>`;
+}
+
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById("page-"+id).classList.add("active");
+  document.querySelectorAll(".nav-pill").forEach(b => b.classList.remove("active"));
+  const map = {home:0,diagnose:1,guide:2,about:3};
+  document.querySelectorAll(".nav-pill")[map[id]]?.classList.add("active");
+}
+
+// Build diseases grid on about page
+function buildAboutGrid(){
+  const el = document.getElementById("diseases-grid");
+  DISEASE_NAMES.forEach(name => {
+    const pill = document.createElement("div");
+    pill.className = "disease-pill";
+    pill.textContent = name;
+    el.appendChild(pill);
+  });
+}
+
+buildChips();
+buildAboutGrid();
+checkLabs();
+</script>
+</body>
+</html>
