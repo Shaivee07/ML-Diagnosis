@@ -28,24 +28,7 @@ Cardiovascular: Heart Attack, Pulmonary Embolism, Hypertensive Crisis
 Gastrointestinal: GERD, Appendicitis
 Infectious/Systemic: Dengue, Gastroenteritis
 Allergic conditions
-🏗️ Tech Stack
 
-Machine Learning
-
-scikit-learn (RandomForest, DecisionTree, GaussianNB)
-
-Backend
-
-Flask
-Flask-CORS
-
-Frontend
-
-HTML5, CSS3, Vanilla JavaScript
-
-Data Handling
-
-pandas, NumPy
 📊 Dataset
 📁 3,000 patient records
 🧾 34 features:
